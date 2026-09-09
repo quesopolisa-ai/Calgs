@@ -3,117 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullscreen Proxy Viewer</title>
+    <title>Proxy Viewer</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-        }
-        #viewer {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        #viewer { width: 100%; height: 100%; border: none; display: block; background: #fff; }
         #controls {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(20, 20, 20, 0.9);
-            padding: 10px 16px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            z-index: 100;
-            transition: transform 0.5s ease;
-            transform: translateY(0);
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(20,20,20,0.9); padding: 10px 16px;
+            display: flex; gap: 10px; align-items: center; z-index: 100;
+            transition: transform 0.5s ease; transform: translateY(0);
         }
-        #controls.hidden {
-            transform: translateY(-100%);
-        }
+        #controls.hidden { transform: translateY(-100%); }
         #toggleBtn {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 101;
-            background: rgba(30, 30, 30, 0.8);
-            color: #ddd;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: 10px; right: 10px; z-index: 101;
+            background: rgba(30,30,30,0.8); color: #ddd; border: none;
+            border-radius: 50%; width: 40px; height: 40px; font-size: 20px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: background 0.3s ease;
         }
-        #toggleBtn:hover {
-            background: rgba(50, 50, 50, 0.9);
-        }
-        #proxySelect {
-            background: #2a2a2a;
-            color: #eee;
-            border: 1px solid #444;
-            padding: 10px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            max-width: 200px;
-            cursor: pointer;
-        }
-        #proxySelect:focus {
-            outline: none;
-            border-color: #888;
-        }
+        #toggleBtn:hover { background: rgba(50,50,50,0.9); }
         #urlInput {
-            flex: 1;
-            background: #2a2a2a;
-            color: #eee;
-            border: 1px solid #444;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 15px;
-            min-width: 200px;
+            flex: 1; background: #2a2a2a; color: #eee; border: 1px solid #444;
+            padding: 10px 14px; border-radius: 6px; font-size: 15px; min-width: 200px;
         }
-        #urlInput:focus {
-            outline: none;
-            border-color: #888;
-        }
+        #urlInput:focus { outline: none; border-color: #888; }
         #goBtn {
-            background: #3a6ea5;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 15px;
-            cursor: pointer;
-            font-weight: 500;
+            background: #3a6ea5; color: #fff; border: none; padding: 10px 20px;
+            border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: 500;
         }
-        #goBtn:hover {
-            background: #4a7eb5;
-        }
-        #status {
-            font-size: 12px;
-            color: #aaa;
-            white-space: nowrap;
-        }
+        #goBtn:hover { background: #4a7eb5; }
+        #status { font-size: 12px; color: #aaa; white-space: nowrap; }
     </style>
 </head>
 <body>
     <iframe id="viewer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
     <div id="controls">
-        <select id="proxySelect">
-            <option value="__random__">🎲 Random Proxy</option>
-        </select>
         <input type="text" id="urlInput" placeholder="Enter URL to fetch..." value="https://example.com" />
         <button id="goBtn">Go</button>
         <span id="status">Ready</span>
@@ -121,110 +46,8 @@
     <button id="toggleBtn" title="Toggle controls">⌕</button>
 
     <script>
-        const proxies = [
-            "https://r07wzbvdwc7.braylonlynn57.workers.dev",
-            "https://r0eh8wadpp2.braylonlynn57.workers.dev",
-            "https://r18u4ibdylx.braylonlynn57.workers.dev",
-            "https://r1ao6rdduol.braylonlynn57.workers.dev",
-            "https://r1cn9fndo8t.braylonlynn57.workers.dev",
-            "https://r1pt8f6e8jp.braylonlynn57.workers.dev",
-            "https://r1xi7gid2fu.braylonlynn57.workers.dev",
-            "https://r324gggd7na.braylonlynn57.workers.dev",
-            "https://r34978peakp.braylonlynn57.workers.dev",
-            "https://r3dvs9wdlwp.braylonlynn57.workers.dev",
-            "https://r3rju9bdmlr.braylonlynn57.workers.dev",
-            "https://r3v7jgge3jh.braylonlynn57.workers.dev",
-            "https://r40yjh8ed21.braylonlynn57.workers.dev",
-            "https://r46duoud07u.braylonlynn57.workers.dev",
-            "https://r47m2u5d19d.braylonlynn57.workers.dev",
-            "https://r4j98qfd6og.braylonlynn57.workers.dev",
-            "https://r4rdt7jdqr2.braylonlynn57.workers.dev",
-            "https://r52ge16doq1.braylonlynn57.workers.dev",
-            "https://r74f62idq7r.braylonlynn57.workers.dev",
-            "https://r7ez76fdf0p.braylonlynn57.workers.dev",
-            "https://r7yn7rxdhjo.braylonlynn57.workers.dev",
-            "https://r81dchuddi0.braylonlynn57.workers.dev",
-            "https://r9l9xzldx9r.braylonlynn57.workers.dev",
-            "https://rasl8r5ddzd.braylonlynn57.workers.dev",
-            "https://rbkfs35cz29.braylonlynn57.workers.dev",
-            "https://rbutbg3davw.braylonlynn57.workers.dev",
-            "https://rcpystbe4bh.braylonlynn57.workers.dev",
-            "https://rcumud8dju2.braylonlynn57.workers.dev",
-            "https://rdjw5qaeblu.braylonlynn57.workers.dev",
-            "https://rdpae5wdwsu.braylonlynn57.workers.dev",
-            "https://rdwd6ltcvt9.braylonlynn57.workers.dev",
-            "https://re148fcecke.braylonlynn57.workers.dev",
-            "https://re7sss9e30j.braylonlynn57.workers.dev",
-            "https://rei16kvdt4d.braylonlynn57.workers.dev",
-            "https://rff1m8kdu2l.braylonlynn57.workers.dev",
-            "https://rfp0if6cym6.braylonlynn57.workers.dev",
-            "https://rfzmlw0d65a.braylonlynn57.workers.dev",
-            "https://rg22ixpcznq.braylonlynn57.workers.dev",
-            "https://rg39gh8dirh.braylonlynn57.workers.dev",
-            "https://rg54v4qd0th.braylonlynn57.workers.dev",
-            "https://rgevwq8d51y.braylonlynn57.workers.dev",
-            "https://rh198zze5d3.braylonlynn57.workers.dev",
-            "https://rh9d78dcxbi.braylonlynn57.workers.dev",
-            "https://rhgx2pve4u0.braylonlynn57.workers.dev",
-            "https://rhrsj1nd3dh.braylonlynn57.workers.dev",
-            "https://rhyqh35e928.braylonlynn57.workers.dev",
-            "https://riaoknyeeli.braylonlynn57.workers.dev",
-            "https://rjjwor5cy19.braylonlynn57.workers.dev",
-            "https://rjzwhwrdjc5.braylonlynn57.workers.dev",
-            "https://rk1dzjhe0zn.braylonlynn57.workers.dev",
-            "https://rk695wtdcd0.braylonlynn57.workers.dev",
-            "https://rkcsqpree1f.braylonlynn57.workers.dev",
-            "https://rkdss3jdbv4.braylonlynn57.workers.dev",
-            "https://rkf7c8kdflq.braylonlynn57.workers.dev",
-            "https://rkt58wxe6a1.braylonlynn57.workers.dev",
-            "https://rkydwlre82m.braylonlynn57.workers.dev",
-            "https://rl192r1ec39.braylonlynn57.workers.dev",
-            "https://rld1637d3uz.braylonlynn57.workers.dev",
-            "https://rlwt95dd8nd.braylonlynn57.workers.dev",
-            "https://rm2rilvdn54.braylonlynn57.workers.dev",
-            "https://rmb5y5jdso6.braylonlynn57.workers.dev",
-            "https://rmcp8lddej2.braylonlynn57.workers.dev",
-            "https://rnfmz4kdbby.braylonlynn57.workers.dev",
-            "https://rnn9822dnr4.braylonlynn57.workers.dev",
-            "https://rnozlq8d97s.braylonlynn57.workers.dev",
-            "https://rnqfof0dr8v.braylonlynn57.workers.dev",
-            "https://rnv2bsndtka.braylonlynn57.workers.dev",
-            "https://rnxlb53dlg9.braylonlynn57.workers.dev",
-            "https://rpynsvbe7bo.braylonlynn57.workers.dev",
-            "https://rq4xsfmdrpi.braylonlynn57.workers.dev",
-            "https://rq9cok8dcv8.braylonlynn57.workers.dev",
-            "https://rqhdu0yd5jb.braylonlynn57.workers.dev",
-            "https://rrivadndzv5.braylonlynn57.workers.dev",
-            "https://rrnqx16e1h9.braylonlynn57.workers.dev",
-            "https://rrojpooe1zu.braylonlynn57.workers.dev",
-            "https://rrr1mioeb2h.braylonlynn57.workers.dev",
-            "https://rruggl1dxse.braylonlynn57.workers.dev",
-            "https://rsd46e5d4iq.braylonlynn57.workers.dev",
-            "https://rsvxnnods7f.braylonlynn57.workers.dev",
-            "https://rt48i3ee2ii.braylonlynn57.workers.dev",
-            "https://rt74816d85p.braylonlynn57.workers.dev",
-            "https://rtbmk4ve0e2.braylonlynn57.workers.dev",
-            "https://rtqkkjndg2n.braylonlynn57.workers.dev",
-            "https://ru3dmchd9r7.braylonlynn57.workers.dev",
-            "https://ru54z29cwdo.braylonlynn57.workers.dev",
-            "https://ruxczvyda83.braylonlynn57.workers.dev",
-            "https://rv16wxvdgzi.braylonlynn57.workers.dev",
-            "https://rvzdf0udgjj.braylonlynn57.workers.dev",
-            "https://rw92c1oe6s1.braylonlynn57.workers.dev",
-            "https://rwufn9bd1wz.braylonlynn57.workers.dev",
-            "https://rxbqkrfea1p.braylonlynn57.workers.dev",
-            "https://rxtfrcadv85.braylonlynn57.workers.dev",
-            "https://ry0ifa8dp72.braylonlynn57.workers.dev",
-            "https://ry33mirdkxd.braylonlynn57.workers.dev",
-            "https://rydz9wmdkbu.braylonlynn57.workers.dev",
-            "https://ryw5cu5dz3f.braylonlynn57.workers.dev",
-            "https://rzb2i2gd2xj.braylonlynn57.workers.dev",
-            "https://rzbq4xydvtx.braylonlynn57.workers.dev",
-            "https://rziutnledjr.braylonlynn57.workers.dev",
-            "https://rzs05lsdi9h.braylonlynn57.workers.dev"
-        ];
+        const PROXY = "https://dogeub-challenge.fly.dev";
 
-        const proxySelect = document.getElementById('proxySelect');
         const urlInput = document.getElementById('urlInput');
         const goBtn = document.getElementById('goBtn');
         const viewer = document.getElementById('viewer');
@@ -232,39 +55,17 @@
         const controls = document.getElementById('controls');
         const toggleBtn = document.getElementById('toggleBtn');
 
-        // Populate proxy dropdown
-        proxies.forEach((proxy, i) => {
-            const opt = document.createElement('option');
-            opt.value = proxy;
-            opt.textContent = `Worker ${i + 1} — ${proxy.replace('https://', '')}`;
-            proxySelect.appendChild(opt);
-        });
-
-        function getSelectedProxy() {
-            if (proxySelect.value === '__random__') {
-                return proxies[Math.floor(Math.random() * proxies.length)];
-            }
-            return proxySelect.value;
-        }
-
         function loadUrl() {
-            const proxy = getSelectedProxy();
             let targetUrl = urlInput.value.trim();
             if (!targetUrl) return;
-
             if (!/^https?:\/\//i.test(targetUrl)) {
                 targetUrl = 'https://' + targetUrl;
             }
-
-            const proxyUrl = proxy + '/?url=' + encodeURIComponent(targetUrl);
-            status.textContent = 'Loading via ' + proxy.replace('https://', '') + '...';
+            const proxyUrl = PROXY + '/?url=' + encodeURIComponent(targetUrl);
+            status.textContent = 'Loading...';
             viewer.src = proxyUrl;
-            viewer.onload = () => {
-                status.textContent = 'Done';
-            };
-            viewer.onerror = () => {
-                status.textContent = 'Error';
-            };
+            viewer.onload = () => { status.textContent = 'Done'; };
+            viewer.onerror = () => { status.textContent = 'Error'; };
         }
 
         goBtn.addEventListener('click', loadUrl);
@@ -276,7 +77,7 @@
             controls.classList.toggle('hidden');
         });
 
-        // Auto-hide controls after 20 seconds, keep toggle button
+        // Auto-hide controls after 20 seconds
         setTimeout(() => {
             controls.classList.add('hidden');
         }, 20000);
