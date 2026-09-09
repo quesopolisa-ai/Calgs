@@ -60,6 +60,20 @@
         #toggleBtn:hover {
             background: rgba(50, 50, 50, 0.9);
         }
+        #proxySelect {
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #444;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            max-width: 200px;
+            cursor: pointer;
+        }
+        #proxySelect:focus {
+            outline: none;
+            border-color: #888;
+        }
         #urlInput {
             flex: 1;
             background: #2a2a2a;
@@ -97,6 +111,9 @@
 <body>
     <iframe id="viewer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
     <div id="controls">
+        <select id="proxySelect">
+            <option value="__random__">🎲 Random Proxy</option>
+        </select>
         <input type="text" id="urlInput" placeholder="Enter URL to fetch..." value="https://example.com" />
         <button id="goBtn">Go</button>
         <span id="status">Ready</span>
@@ -207,6 +224,7 @@
             "https://rzs05lsdi9h.braylonlynn57.workers.dev"
         ];
 
+        const proxySelect = document.getElementById('proxySelect');
         const urlInput = document.getElementById('urlInput');
         const goBtn = document.getElementById('goBtn');
         const viewer = document.getElementById('viewer');
@@ -214,12 +232,23 @@
         const controls = document.getElementById('controls');
         const toggleBtn = document.getElementById('toggleBtn');
 
-        function getRandomProxy() {
-            return proxies[Math.floor(Math.random() * proxies.length)];
+        // Populate proxy dropdown
+        proxies.forEach((proxy, i) => {
+            const opt = document.createElement('option');
+            opt.value = proxy;
+            opt.textContent = `Worker ${i + 1} — ${proxy.replace('https://', '')}`;
+            proxySelect.appendChild(opt);
+        });
+
+        function getSelectedProxy() {
+            if (proxySelect.value === '__random__') {
+                return proxies[Math.floor(Math.random() * proxies.length)];
+            }
+            return proxySelect.value;
         }
 
         function loadUrl() {
-            const proxy = getRandomProxy();
+            const proxy = getSelectedProxy();
             let targetUrl = urlInput.value.trim();
             if (!targetUrl) return;
 
@@ -228,7 +257,7 @@
             }
 
             const proxyUrl = proxy + '/?url=' + encodeURIComponent(targetUrl);
-            status.textContent = 'Loading...';
+            status.textContent = 'Loading via ' + proxy.replace('https://', '') + '...';
             viewer.src = proxyUrl;
             viewer.onload = () => {
                 status.textContent = 'Done';
@@ -247,7 +276,7 @@
             controls.classList.toggle('hidden');
         });
 
-        // Auto-hide controls after 20 seconds, but keep toggle button visible
+        // Auto-hide controls after 20 seconds, keep toggle button
         setTimeout(() => {
             controls.classList.add('hidden');
         }, 20000);
