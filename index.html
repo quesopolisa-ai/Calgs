@@ -3,132 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxy Viewer</title>
+    <title>Fullscreen Proxy Viewer</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0d0d0d;
-            color: #e0e0e0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        html, body {
+            width: 100%;
+            height: 100%;
             overflow: hidden;
+            background: #000;
         }
-        #toolbar {
-            background: #1a1a1a;
-            padding: 12px 20px;
+        #viewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        #controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.9);
+            padding: 10px 16px;
             display: flex;
             gap: 10px;
             align-items: center;
-            border-bottom: 1px solid #2a2a2a;
-            flex-wrap: wrap;
+            z-index: 100;
+            transition: transform 0.3s ease;
+            transform: translateY(0);
         }
-        #toolbar select {
-            background: #252525;
-            color: #e0e0e0;
-            border: 1px solid #3a3a3a;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            min-width: 280px;
+        #controls.hidden {
+            transform: translateY(-100%);
+        }
+        #toggleBtn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 101;
+            background: rgba(30, 30, 30, 0.8);
+            color: #ddd;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        #toolbar select:focus {
-            outline: none;
-            border-color: #666;
+        #toggleBtn:hover {
+            background: rgba(50, 50, 50, 0.9);
         }
         #urlInput {
             flex: 1;
-            background: #252525;
-            color: #e0e0e0;
-            border: 1px solid #3a3a3a;
-            padding: 8px 12px;
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #444;
+            padding: 10px 14px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 15px;
             min-width: 200px;
         }
         #urlInput:focus {
             outline: none;
-            border-color: #666;
+            border-color: #888;
         }
         #goBtn {
             background: #3a6ea5;
             color: #fff;
             border: none;
-            padding: 8px 18px;
+            padding: 10px 20px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
             font-weight: 500;
         }
         #goBtn:hover {
             background: #4a7eb5;
         }
-        #randomBtn {
-            background: #555;
-            color: #fff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        #randomBtn:hover {
-            background: #666;
-        }
         #status {
             font-size: 12px;
-            color: #999;
-            margin-left: auto;
-        }
-        #frameContainer {
-            flex: 1;
-            position: relative;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff;
-        }
-        #loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(13, 13, 13, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            color: #ccc;
-            z-index: 10;
-        }
-        #loading.show {
-            display: flex;
+            color: #aaa;
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
-    <div id="toolbar">
-        <select id="proxySelect">
-            <option value="">-- Select Worker Proxy --</option>
-        </select>
+    <iframe id="viewer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+    <div id="controls">
         <input type="text" id="urlInput" placeholder="Enter URL to fetch..." value="https://example.com" />
         <button id="goBtn">Go</button>
-        <button id="randomBtn">Random Proxy</button>
         <span id="status">Ready</span>
     </div>
-    <div id="frameContainer">
-        <iframe id="viewer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
-        <div id="loading">Loading through proxy...</div>
-    </div>
+    <button id="toggleBtn" title="Toggle controls">⌕</button>
 
     <script>
         const proxies = [
@@ -234,68 +206,49 @@
             "https://rzs05lsdi9h.braylonlynn57.workers.dev"
         ];
 
-        const select = document.getElementById('proxySelect');
         const urlInput = document.getElementById('urlInput');
         const goBtn = document.getElementById('goBtn');
-        const randomBtn = document.getElementById('randomBtn');
         const viewer = document.getElementById('viewer');
-        const loading = document.getElementById('loading');
         const status = document.getElementById('status');
+        const controls = document.getElementById('controls');
+        const toggleBtn = document.getElementById('toggleBtn');
 
-        // Populate dropdown
-        proxies.forEach((proxy, i) => {
-            const opt = document.createElement('option');
-            opt.value = proxy;
-            opt.textContent = `Worker ${i + 1} — ${proxy.replace('https://', '')}`;
-            select.appendChild(opt);
-        });
-
-        function getSelectedProxy() {
-            return select.value || proxies[Math.floor(Math.random() * proxies.length)];
+        function getRandomProxy() {
+            return proxies[Math.floor(Math.random() * proxies.length)];
         }
 
         function loadUrl() {
-            const proxy = getSelectedProxy();
+            const proxy = getRandomProxy(); // use random proxy silently
             let targetUrl = urlInput.value.trim();
             if (!targetUrl) return;
-            
-            // Add https:// if missing
+
             if (!/^https?:\/\//i.test(targetUrl)) {
                 targetUrl = 'https://' + targetUrl;
             }
 
-            // Construct proxy URL — workers typically accept ?url= param or path
             const proxyUrl = proxy + '/?url=' + encodeURIComponent(targetUrl);
-            
-            loading.classList.add('show');
-            status.textContent = 'Loading via ' + proxy.replace('https://', '');
-            
+            status.textContent = 'Loading...';
+            viewer.src = proxyUrl;
             viewer.onload = () => {
-                loading.classList.remove('show');
-                status.textContent = 'Loaded: ' + targetUrl;
+                status.textContent = 'Done';
             };
             viewer.onerror = () => {
-                loading.classList.remove('show');
-                status.textContent = 'Error loading ' + targetUrl;
+                status.textContent = 'Error';
             };
-            
-            viewer.src = proxyUrl;
         }
 
         goBtn.addEventListener('click', loadUrl);
         urlInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') loadUrl();
         });
-        randomBtn.addEventListener('click', () => {
-            const randomProxy = proxies[Math.floor(Math.random() * proxies.length)];
-            select.value = randomProxy;
-            status.textContent = 'Selected: ' + randomProxy.replace('https://', '');
-            loadUrl();
+
+        toggleBtn.addEventListener('click', () => {
+            controls.classList.toggle('hidden');
         });
 
-        // Auto-select random proxy on load
-        select.value = proxies[Math.floor(Math.random() * proxies.length)];
-        status.textContent = 'Ready — using ' + select.value.replace('https://', '');
+        // Optional: auto-hide controls after a few seconds, click toggle to show
+        // Uncomment to enable auto-hide:
+        // setTimeout(() => controls.classList.add('hidden'), 3000);
     </script>
 </body>
 </html>
